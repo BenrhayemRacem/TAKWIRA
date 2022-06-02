@@ -64,6 +64,25 @@ console.log(e)
         }
 
     }
+    async delete(id) {
+        try{
+            await reservationModel.destroy({where:{id}})
+            return {success:true}
+        }catch (e) {
+            console.log(e)
+            return {success:false}
+        }
+    }
+
+    async getReservationForOwner(id) {
+        try{
+            const list = await reservationModel.findAll({where: {fieldId: id}});
+            return {success:true,data:list}
+        }catch (e) {
+console.log(e)
+            return {success:false,data:null}
+        }
+    }
 }
 
 

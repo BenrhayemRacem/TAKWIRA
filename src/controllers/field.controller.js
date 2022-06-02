@@ -58,7 +58,7 @@ class fieldController {
             name,
             adresse,
             type,
-            isNotAvailable:convertUtility.convertStringToJson(convertUtility.convertJsonToString(isNotAvailable)), 
+            isNotAvailable,
             services,
             prix,
             period,

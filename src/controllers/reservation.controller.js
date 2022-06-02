@@ -4,6 +4,7 @@ const {StatusCodes} = require("http-status-codes");
 const timeHandling = require("../services/timeHandling")
 const reservationDao = require("../dao/reservation.dao")
 const moment = require("moment");
+const convertUtility = require("../utils/jsonString.utility");
 
 class ReservationController{
 
@@ -130,8 +131,18 @@ class ReservationController{
         const fixedStartDate = new Date(dateFormat.setDate(dateFormat.getDate()-1))
         const endDate = new Date(dateFormat.setDate(dateFormat.getDate()+1))
         let startDate = new Date(dateFormat.setDate(dateFormat.getDate()))
-        const notAvailableAsString = fieldExists.data.isNotAvailable;
-        const notAvailable = JSON.parse(notAvailableAsString)
+        let notAvailable =""
+        if(fieldExists.data.isUpdated===0) {
+            const av2 = fieldExists.data.isNotAvailable;
+            // const notAvailable = JSON.parse(notAvailableAsString.substring(1,notAvailableAsString.length-1))
+            notAvailable={'startDate':av2.substring(av2.indexOf(":")+1,av2.indexOf(",")),'finishDate':av2.substring(av2.indexOf("finishDate:",av2.indexOf(":"+1))+12,av2.indexOf("}"))}
+            const str=convertUtility.convertJsonToString(notAvailable);
+        }else {
+            const notAvailableAsString = fieldExists.data.isNotAvailable;
+             notAvailable = JSON.parse(notAvailableAsString)
+        }
+
+       // return res.json(notAvailable )
        // return res.json({notAvailable,aaa:timeHandling.checkUnavailable(startDate.toLocaleString(), notAvailable.startDate, notAvailable.finishDate),startDate:startDate.toLocaleString()})
 
         let ouvertureTime = fieldExists.data.ouverture.split(":")
@@ -234,11 +245,56 @@ class ReservationController{
             const list = reservationList.data;
             const newList = await Promise.all(list.map( async (element)=>{
                 const field = await fieldDao.findById(element.fieldId);
-                return {name:field.data.name, address:field.data.adresse , date : element.startDate.toLocaleString() , finishDate:element.endDate.toLocaleString()}
+                return { reservationId:element.id,name:field.data.name, address:field.data.adresse , date : element.startDate.toLocaleString() , finishDate:element.endDate.toLocaleString()}
             }))
           return  res.json(newList)
         }
         return res.json([])
+    }
+
+    async deleteReservation (req,res) {
+        const id = req.params.id;
+        const result = await reservationDao.delete(id);
+        if(result.success){
+            return res.status(StatusCodes.OK).json("deleted successfully")
+        }
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("error in delete")
+    }
+    async getReservationForOwner(req,res) {
+
+        const id = req.infos.authId;
+        const fieldsResult = await fieldDao.findByIdPropietaire(id);
+        if(fieldsResult.success===false) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("error")
+        }
+        if(!fieldsResult.data || fieldsResult.data.length ==0) {
+            return res.status(StatusCodes.NOT_FOUND).json("no fields found")
+        }
+        const fields = fieldsResult.data ;
+       // return res.json(fields)
+        const list =await Promise.all(fields.map(async(element)=> {
+            const reservation = await reservationDao.getWithFieldId(element.id)
+            // let formattedList= []
+            if (reservation.success && reservation.data.length > 0) {
+                const fieldList = reservation.data;
+                const formattedList = await Promise.all(fieldList.map(async (elt) => {
+                    const user = await userDao.findById(elt.userId);
+                    return {
+                        name: element.name,
+                        date: elt.startDate.toLocaleString(),
+                        finishDate: elt.endDate.toLocaleString(),
+                        clientName: `${user.data.firstName} ${user.data.lastName}`,
+                        clientNumber: user.data.phoneNumber
+                    }
+                }))
+                if(formattedList && formattedList.length>0) {
+                    return formattedList
+                }
+            }
+        }))
+            const formattedResult = list.filter((element)=>element!=null)
+            return  res.json(formattedResult.flat())
+
     }
 
 }
