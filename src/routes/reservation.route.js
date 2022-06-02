@@ -9,4 +9,5 @@ const reservationGuard = require("../guards/reservation.guard")
 router.post("/add" ,[jwtHandling.jwtVerify([UserType.Client]),reservationGuard], reservationController.add)
 router.get("/getForField/:fieldId/:date" , reservationController.getFieldReservation)
 router.get("/free/:fieldId/:date" , reservationController.giveAvailableReservation)
+router.get("/client" ,[jwtHandling.jwtVerify([UserType.Client]),reservationGuard],reservationController.getClientReservations)
 module.exports = router ;

@@ -52,6 +52,18 @@ console.log(e)
             return {success:false,data:null}
         }
     }
+
+   async  getClientReservation(id) {
+        try {
+            const list = await reservationModel.findAll({where:{userId:id}})
+            return {success:true, data:list}
+
+        }catch (e) {
+            console.log(e)
+            return {success:false,data:null}
+        }
+
+    }
 }
 
 

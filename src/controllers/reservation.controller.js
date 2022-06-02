@@ -223,6 +223,23 @@ class ReservationController{
 
 
     }
+    async getClientReservations (req,res) {
+        const id = req.infos.authId ;
+        //const id = 11
+        const reservationList = await reservationDao.getClientReservation(id);
+        if(reservationList.success===false) {
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json("error")
+        }
+        if(reservationList.data.length >0) {
+            const list = reservationList.data;
+            const newList = await Promise.all(list.map( async (element)=>{
+                const field = await fieldDao.findById(element.fieldId);
+                return {name:field.data.name, address:field.data.adresse , date : element.startDate}
+            }))
+          return  res.json(newList)
+        }
+        return res.json([])
+    }
 
 }
 
