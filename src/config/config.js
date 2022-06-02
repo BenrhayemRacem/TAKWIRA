@@ -5,7 +5,7 @@ require("dotenv").config() ;
 config ={
     "development" : {
         "server" : {
-            "port" : process.env.SERVER_PORT || 3000 ,
+            "port" : process.env.PORT || 3000 ,
         },
         "database" : {
             "dialect" : process.env.DATABASE_DIALECT,
