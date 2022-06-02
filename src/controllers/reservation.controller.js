@@ -234,7 +234,7 @@ class ReservationController{
             const list = reservationList.data;
             const newList = await Promise.all(list.map( async (element)=>{
                 const field = await fieldDao.findById(element.fieldId);
-                return {name:field.data.name, address:field.data.adresse , date : element.startDate}
+                return {name:field.data.name, address:field.data.adresse , date : element.startDate.toLocaleString() , finishDate:element.endDate.toLocaleString()}
             }))
           return  res.json(newList)
         }
