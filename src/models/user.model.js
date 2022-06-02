@@ -1,11 +1,13 @@
 
 const {Model , DataTypes} = require("sequelize")
 const sequelize = require("../database/connection") ;
+const userTypes = require("../enums/userTypes")
+const field = require("./field.model");
 
-class Client extends Model{}
+class User extends Model{}
 
 
-Client.init({
+User.init({
     id :{
         type: DataTypes.INTEGER ,
         primaryKey : true ,
@@ -41,11 +43,22 @@ Client.init({
     jwt :{
         type :DataTypes.STRING ,
         allowNull :true
-    }
+    } ,
+    role : {
+        type : DataTypes.STRING ,
+        allowNull : false ,
+        validate: {
+            isIn: [[userTypes.Client,userTypes.Owner,userTypes.OwnerRequest,userTypes.Admin]]
+        }
+    },
+
 }, {
     sequelize,
-    modelName : "client"
+    modelName : "user"
 })
 
+User.hasMany(field   )
+field.belongsTo(User )
 
-module.exports = Client
+
+module.exports = User
