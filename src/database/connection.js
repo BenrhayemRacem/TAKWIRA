@@ -4,14 +4,16 @@ const {database} = development ;
 
 
 const sequelize = new Sequelize(
-    database.name ,
-    database.username ,
-    database.password ,
-    {
-        host :database.host,
-        port :database.port ,
-        dialect :database.dialect ,
+process.env.DATABASE_URL , {
+        dialectOptions: {
+            ssl: {
+                require: true,
+                rejectUnauthorized: false
+            }
+        }
+
     }
+
 );
 
 (async ()=> {
